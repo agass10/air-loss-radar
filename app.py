@@ -1,5 +1,6 @@
-"""AFR Air Loss Radar v2: four-borough, conservative 311 triage pilot."""
+"""AFR Air Loss Radar v3: four-borough, conservative 311 triage pilot."""
 from datetime import datetime, timedelta, timezone
+from news_sources import fetch_news
 import pandas as pd
 import requests
 import streamlit as st
@@ -52,8 +53,24 @@ def assess(row):
     return "Excluded", "No clear restoration-loss indicator", 0
 
 st.title("Air Loss Radar")
-st.caption("AFR pilot v2 · Manhattan · Bronx · Brooklyn · Queens · 311 screening (unverified reports)")
-st.warning("NYC 311 reports are NOT confirmed fire or water losses. This version does not monitor FDNY dispatch, X/Twitter, Citizen, or live emergency feeds. No fire incidents are independently verified here.")
+st.subheader("Public news incident discovery (experimental)")
+st.caption("Google News RSS headlines only; not live FDNY dispatch, X/Twitter or verified losses. Coverage is incomplete and headlines can be wrong. News may arrive after contractors are engaged.")
+news_days=st.selectbox("News lookback",[1,3,7],index=2)
+if st.button("Refresh news feed"):
+    fetch_news.clear()
+news, news_errors=fetch_news(news_days)
+if news_errors: st.warning("Some news sources were unavailable. Results may be incomplete.")
+if news.empty:
+    st.info("No matching headlines returned. This does not mean no fires or water losses occurred.")
+else:
+    news=news[news["borough"].isin(["Manhattan","Bronx","Brooklyn","Queens"])].copy()
+    st.metric("Candidate incident headlines (unverified)",len(news))
+    st.dataframe(news[["published_utc","borough","incident_type","priority","headline","source","source_link"]],column_config={"source_link":st.column_config.LinkColumn("Open source")},hide_index=True,use_container_width=True)
+    st.download_button("Export news candidates",news.to_csv(index=False),"air_loss_radar_news_candidates.csv","text/csv")
+st.divider()
+st.subheader("Supplementary 311 screening")
+st.caption("AFR pilot v3 · Manhattan · Bronx · Brooklyn · Queens · 311 screening (unverified reports)")
+st.warning("NYC 311 reports are NOT confirmed fire or water losses. News RSS headlines are now screened separately, but FDNY dispatch, X/Twitter, Citizen, and live emergency feeds are NOT monitored. No fire incidents are independently verified here.")
 days = st.sidebar.selectbox("Lookback (days)", [1, 3, 7, 14, 30], index=2)
 selected = st.sidebar.multiselect("Boroughs", BOROUGHS, default=BOROUGHS)
 levels = st.sidebar.multiselect("Opportunity priority", ["High", "Medium"], default=["High", "Medium"])
