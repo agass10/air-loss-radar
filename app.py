@@ -1,11 +1,11 @@
-"""AFR Air Loss Radar v3: four-borough, conservative 311 triage pilot."""
+"""AFR Loss Radar v4: public news and NYC 311 review dashboard."""
 from datetime import datetime, timedelta, timezone
 from news_sources import fetch_news
 import pandas as pd
 import requests
 import streamlit as st
 
-st.set_page_config(page_title="Air Loss Radar | AFR", layout="wide")
+st.set_page_config(page_title="AFR Loss Radar", layout="wide")
 BOROUGHS = ["MANHATTAN", "BRONX", "BROOKLYN", "QUEENS"]
 API = "https://data.cityofnewyork.us/resource/erm2-nwe9.json"
 PAGE_SIZE = 1000
@@ -52,8 +52,20 @@ def assess(row):
         return "Medium", "Possible water intrusion; verify", 45
     return "Excluded", "No clear restoration-loss indicator", 0
 
-st.title("Air Loss Radar")
-st.subheader("Public news incident discovery (experimental)")
+st.title("AFR Loss Radar")
+st.caption("American Fire Restoration | Manhattan · Bronx · Brooklyn · Queens")
+st.warning("PILOT — not a real-time dispatch service. This page checks sources when opened or refreshed; it does not monitor incidents continuously or send automatic alerts.")
+st.subheader("Source connection status")
+st.dataframe(pd.DataFrame([
+    {"Source":"Google News RSS", "Status":"Connected — on-demand", "Notes":"Headline discovery; may be delayed"},
+    {"Source":"NYC 311 Open Data", "Status":"Connected — on-demand", "Notes":"Supplementary water complaints; not confirmed losses"},
+    {"Source":"NYC Fire Wire", "Status":"Not connected", "Notes":"Permission and machine-readable access must be established"},
+    {"Source":"WEEWOO NYC", "Status":"Not connected", "Notes":"Technical access and reuse permissions unverified"},
+    {"Source":"Notify NYC", "Status":"Not connected", "Notes":"Suitable public feed must be validated"},
+]), hide_index=True, use_container_width=True)
+st.caption("Email destination planned: afremployment@gmail.com · Automatic notifications not enabled. Do not place passwords in GitHub.")
+st.divider()
+st.subheader("Incident discovery — public news (experimental)")
 st.caption("Google News RSS headlines only; not live FDNY dispatch, X/Twitter or verified losses. Coverage is incomplete and headlines can be wrong. News may arrive after contractors are engaged.")
 news_days=st.selectbox("News lookback",[1,3,7],index=2)
 if st.button("Refresh news feed"):
@@ -66,11 +78,11 @@ else:
     news=news[news["borough"].isin(["Manhattan","Bronx","Brooklyn","Queens"])].copy()
     st.metric("Candidate incident headlines (unverified)",len(news))
     st.dataframe(news[["published_utc","borough","incident_type","priority","headline","source","source_link"]],column_config={"source_link":st.column_config.LinkColumn("Open source")},hide_index=True,use_container_width=True)
-    st.download_button("Export news candidates",news.to_csv(index=False),"air_loss_radar_news_candidates.csv","text/csv")
+    st.download_button("Export news candidates",news.to_csv(index=False),"afr_loss_radar_news_candidates.csv","text/csv")
 st.divider()
 st.subheader("Supplementary 311 screening")
-st.caption("AFR pilot v3 · Manhattan · Bronx · Brooklyn · Queens · 311 screening (unverified reports)")
-st.warning("NYC 311 reports are NOT confirmed fire or water losses. News RSS headlines are now screened separately, but FDNY dispatch, X/Twitter, Citizen, and live emergency feeds are NOT monitored. No fire incidents are independently verified here.")
+st.caption("AFR pilot v4 · Manhattan · Bronx · Brooklyn · Queens · 311 screening (unverified reports)")
+st.warning("311 complaints and news headlines are unverified. FDNY dispatch, NYC Fire Wire, WEEWOO, Notify NYC, Citizen and social-media live feeds are NOT connected.")
 days = st.sidebar.selectbox("Lookback (days)", [1, 3, 7, 14, 30], index=2)
 selected = st.sidebar.multiselect("Boroughs", BOROUGHS, default=BOROUGHS)
 levels = st.sidebar.multiselect("Opportunity priority", ["High", "Medium"], default=["High", "Medium"])
@@ -108,7 +120,7 @@ try:
             st.subheader("Mapped review signals")
             st.map(coords[["lat", "lon"]])
         st.download_button("Export review queue (CSV)", relevant.to_csv(index=False),
-                           "air_loss_radar_v2_review.csv", "text/csv")
+                           "afr_loss_radar_311_review.csv", "text/csv")
         with st.expander("Data quality and scoring methodology"):
             st.write("Source: NYC Open Data 311 (erm2-nwe9). Retrieved on demand and cached 15 minutes. Reports are paginated to 20,000 maximum raw records per selected window. No persistent monitoring or automated notifications.")
             st.write("Only selected plumbing/sewer-related complaint categories are screened. Exclusion and scoring rules are conservative and require validation. High priority does not mean a high-dollar claim. No fire detection source is currently connected.")
