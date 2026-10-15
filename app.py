@@ -126,3 +126,6 @@ try:
             st.write("Only selected plumbing/sewer-related complaint categories are screened. Exclusion and scoring rules are conservative and require validation. High priority does not mean a high-dollar claim. No fire detection source is currently connected.")
 except Exception as exc:
     st.error(f"NYC Open Data retrieval failed: {exc}")
+
+from source_probe import show_source_lab
+show_source_lab()
