@@ -1,4 +1,4 @@
-"""AFR Loss Radar v4: public news and NYC 311 review dashboard."""
+"""AFR Loss Radar v4.3: consolidated public incident review pilot."""
 from datetime import datetime, timedelta, timezone
 from news_sources import fetch_news
 import pandas as pd
@@ -53,8 +53,8 @@ def assess(row):
     return "Excluded", "No clear restoration-loss indicator", 0
 
 st.title("AFR Loss Radar")
-from notify_nyc import show_notify_nyc
-show_notify_nyc()
+from incident_queue import show_queue
+show_queue()
 st.caption("American Fire Restoration | Manhattan · Bronx · Brooklyn · Queens")
 st.warning("PILOT — not a real-time dispatch service. This page checks sources when opened or refreshed; it does not monitor incidents continuously or send automatic alerts.")
 st.subheader("Source connection status")
@@ -63,11 +63,11 @@ st.dataframe(pd.DataFrame([
     {"Source":"NYC 311 Open Data", "Status":"Connected — on-demand", "Notes":"Supplementary water complaints; not confirmed losses"},
     {"Source":"NYC Fire Wire", "Status":"Not connected", "Notes":"Permission and machine-readable access must be established"},
     {"Source":"WEEWOO NYC", "Status":"Not connected", "Notes":"Technical access and reuse permissions unverified"},
-    {"Source":"Notify NYC", "Status":"Not connected", "Notes":"Suitable public feed must be validated"},
+    {"Source":"Notify NYC", "Status":"Connected — on-demand webpage", "Notes":"Experimental public notice extraction; not live dispatch"},
 ]), hide_index=True, use_container_width=True)
 st.caption("Email destination planned: afremployment@gmail.com · Automatic notifications not enabled. Do not place passwords in GitHub.")
 st.divider()
-st.subheader("Incident discovery — public news (experimental)")
+st.subheader("Supplementary news detail (experimental)")
 st.caption("Google News RSS headlines only; not live FDNY dispatch, X/Twitter or verified losses. Coverage is incomplete and headlines can be wrong. News may arrive after contractors are engaged.")
 news_days=st.selectbox("News lookback",[1,3,7],index=2)
 if st.button("Refresh news feed"):
@@ -82,6 +82,8 @@ else:
     st.dataframe(news[["published_utc","borough","incident_type","priority","headline","source","source_link"]],column_config={"source_link":st.column_config.LinkColumn("Open source")},hide_index=True,use_container_width=True)
     st.download_button("Export news candidates",news.to_csv(index=False),"afr_loss_radar_news_candidates.csv","text/csv")
 st.divider()
+from notify_nyc import show_notify_nyc
+show_notify_nyc()
 st.subheader("Supplementary 311 screening")
 st.caption("AFR pilot v4 · Manhattan · Bronx · Brooklyn · Queens · 311 screening (unverified reports)")
 st.warning("311 complaints and news headlines are unverified. FDNY dispatch, NYC Fire Wire, WEEWOO, Citizen and social-media live feeds are NOT connected. Notify NYC public homepage notices are screened experimentally, not continuously.")
