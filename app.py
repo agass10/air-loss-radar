@@ -53,6 +53,8 @@ def assess(row):
     return "Excluded", "No clear restoration-loss indicator", 0
 
 st.title("AFR Loss Radar")
+from notify_nyc import show_notify_nyc
+show_notify_nyc()
 st.caption("American Fire Restoration | Manhattan · Bronx · Brooklyn · Queens")
 st.warning("PILOT — not a real-time dispatch service. This page checks sources when opened or refreshed; it does not monitor incidents continuously or send automatic alerts.")
 st.subheader("Source connection status")
@@ -82,7 +84,7 @@ else:
 st.divider()
 st.subheader("Supplementary 311 screening")
 st.caption("AFR pilot v4 · Manhattan · Bronx · Brooklyn · Queens · 311 screening (unverified reports)")
-st.warning("311 complaints and news headlines are unverified. FDNY dispatch, NYC Fire Wire, WEEWOO, Notify NYC, Citizen and social-media live feeds are NOT connected.")
+st.warning("311 complaints and news headlines are unverified. FDNY dispatch, NYC Fire Wire, WEEWOO, Citizen and social-media live feeds are NOT connected. Notify NYC public homepage notices are screened experimentally, not continuously.")
 days = st.sidebar.selectbox("Lookback (days)", [1, 3, 7, 14, 30], index=2)
 selected = st.sidebar.multiselect("Boroughs", BOROUGHS, default=BOROUGHS)
 levels = st.sidebar.multiselect("Opportunity priority", ["High", "Medium"], default=["High", "Medium"])
