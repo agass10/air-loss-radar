@@ -30,7 +30,7 @@ def fetch_news(days=7):
     rows=[]; errors=[]
     for q in SEARCHES:
         try:
-            r=requests.get('https://news.google.com/rss/search',params={'q':q,'hl':'en-US','gl':'US','ceid':'US:en'},timeout=18,headers={'User-Agent':'AirLossRadarPilot/0.3 (public RSS research)'})
+            r=requests.get('https://news.google.com/rss/search',params={'q':q,'hl':'en-US','gl':'US','ceid':'US:en'},timeout=18,headers={'User-Agent':'AFRLossRadarPilot/0.4 (public RSS research)'})
             r.raise_for_status()
             root=ET.fromstring(r.content)
             for item in root.findall('./channel/item'):
@@ -45,4 +45,3 @@ def fetch_news(days=7):
     df=pd.DataFrame(rows)
     if not df.empty: df=df.drop_duplicates(subset=['source_link']).sort_values('published_utc',ascending=False)
     return df, errors
-
